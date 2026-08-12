@@ -74,6 +74,9 @@ public class ResumeMatcherService {
         String education = resumeParserService.extractEducation(resumeText);
 
         List<String> candidateSkills = skillOntologyService.extractSkills(resumeText);
+        List<String> softSkills = skillOntologyService.extractSoftSkills(resumeText);
+        double softSkillScore = softSkills.isEmpty() ? 75.0 : Math.min(100.0, softSkills.size() * 25.0);
+
         List<String> jobSkills = skillOntologyService.extractSkills(jobDesc);
         if (!requiredSkills.isEmpty()) {
             for (String req : requiredSkills) {
@@ -161,6 +164,7 @@ public class ResumeMatcherService {
                 .jobTitle(jobTitle)
                 .overallScore(overallScore)
                 .skillMatchScore(Math.round(skillScore))
+                .softSkillScore(Math.round(softSkillScore))
                 .semanticScore(Math.round(semanticScore))
                 .experienceScore(Math.round(expScore))
                 .educationScore(Math.round(eduScore))
@@ -171,6 +175,7 @@ public class ResumeMatcherService {
                 .missingSkills(missingSkills)
                 .extractedExperienceYears(expYears)
                 .detectedEducation(education)
+                .resumeRawText(resumeText)
                 .atsRecommendations(recommendations)
                 .aiSummaryAdvice(aiAdvice)
                 .processedWithAi(processedWithAi)

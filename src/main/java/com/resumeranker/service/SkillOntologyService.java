@@ -26,6 +26,10 @@ public class SkillOntologyService {
         "Leadership", "Communication", "Problem Solving", "Teamwork", "Project Management", "Time Management", "Critical Thinking"
     ));
 
+    private final Set<String> SOFT_SKILLS = new LinkedHashSet<>(Arrays.asList(
+        "Leadership", "Communication", "Problem Solving", "Teamwork", "Project Management", "Time Management", "Critical Thinking", "Agile", "Scrum"
+    ));
+
     public List<String> extractSkills(String text) {
         if (text == null || text.trim().isEmpty()) return Collections.emptyList();
         
@@ -33,7 +37,6 @@ public class SkillOntologyService {
         String normalizedText = text.toLowerCase();
 
         for (String skill : KNOWN_SKILLS) {
-            // Regex match with word boundary
             String escapedSkill = Pattern.quote(skill.toLowerCase());
             Pattern pattern = Pattern.compile("\\b" + escapedSkill + "\\b");
             Matcher matcher = pattern.matcher(normalizedText);
@@ -42,6 +45,21 @@ public class SkillOntologyService {
             }
         }
         return matchedSkills;
+    }
+
+    public List<String> extractSoftSkills(String text) {
+        if (text == null || text.trim().isEmpty()) return Collections.emptyList();
+        List<String> matched = new ArrayList<>();
+        String normalizedText = text.toLowerCase();
+        for (String skill : SOFT_SKILLS) {
+            String escapedSkill = Pattern.quote(skill.toLowerCase());
+            Pattern pattern = Pattern.compile("\\b" + escapedSkill + "\\b");
+            Matcher matcher = pattern.matcher(normalizedText);
+            if (matcher.find()) {
+                matched.add(skill);
+            }
+        }
+        return matched;
     }
 
     public Set<String> getKnownSkills() {

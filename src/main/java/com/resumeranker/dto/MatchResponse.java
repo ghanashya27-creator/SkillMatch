@@ -10,6 +10,7 @@ public class MatchResponse {
     
     private double overallScore;
     private double skillMatchScore;
+    private double softSkillScore;
     private double semanticScore;
     private double experienceScore;
     private double educationScore;
@@ -22,6 +23,7 @@ public class MatchResponse {
     private List<String> missingSkills;
     private int extractedExperienceYears;
     private String detectedEducation;
+    private String resumeRawText;
 
     private List<String> atsRecommendations;
     private String aiSummaryAdvice;
@@ -29,13 +31,14 @@ public class MatchResponse {
 
     public MatchResponse() {}
 
-    public MatchResponse(String candidateName, String candidateEmail, String candidatePhone, String jobTitle, double overallScore, double skillMatchScore, double semanticScore, double experienceScore, double educationScore, String scoreTier, String tierColorHex, List<String> detectedSkills, List<String> matchedSkills, List<String> missingSkills, int extractedExperienceYears, String detectedEducation, List<String> atsRecommendations, String aiSummaryAdvice, boolean processedWithAi) {
+    public MatchResponse(String candidateName, String candidateEmail, String candidatePhone, String jobTitle, double overallScore, double skillMatchScore, double softSkillScore, double semanticScore, double experienceScore, double educationScore, String scoreTier, String tierColorHex, List<String> detectedSkills, List<String> matchedSkills, List<String> missingSkills, int extractedExperienceYears, String detectedEducation, String resumeRawText, List<String> atsRecommendations, String aiSummaryAdvice, boolean processedWithAi) {
         this.candidateName = candidateName;
         this.candidateEmail = candidateEmail;
         this.candidatePhone = candidatePhone;
         this.jobTitle = jobTitle;
         this.overallScore = overallScore;
         this.skillMatchScore = skillMatchScore;
+        this.softSkillScore = softSkillScore;
         this.semanticScore = semanticScore;
         this.experienceScore = experienceScore;
         this.educationScore = educationScore;
@@ -46,6 +49,7 @@ public class MatchResponse {
         this.missingSkills = missingSkills;
         this.extractedExperienceYears = extractedExperienceYears;
         this.detectedEducation = detectedEducation;
+        this.resumeRawText = resumeRawText;
         this.atsRecommendations = atsRecommendations;
         this.aiSummaryAdvice = aiSummaryAdvice;
         this.processedWithAi = processedWithAi;
@@ -68,6 +72,9 @@ public class MatchResponse {
 
     public double getSkillMatchScore() { return skillMatchScore; }
     public void setSkillMatchScore(double skillMatchScore) { this.skillMatchScore = skillMatchScore; }
+
+    public double getSoftSkillScore() { return softSkillScore; }
+    public void setSoftSkillScore(double softSkillScore) { this.softSkillScore = softSkillScore; }
 
     public double getSemanticScore() { return semanticScore; }
     public void setSemanticScore(double semanticScore) { this.semanticScore = semanticScore; }
@@ -99,6 +106,9 @@ public class MatchResponse {
     public String getDetectedEducation() { return detectedEducation; }
     public void setDetectedEducation(String detectedEducation) { this.detectedEducation = detectedEducation; }
 
+    public String getResumeRawText() { return resumeRawText; }
+    public void setResumeRawText(String resumeRawText) { this.resumeRawText = resumeRawText; }
+
     public List<String> getAtsRecommendations() { return atsRecommendations; }
     public void setAtsRecommendations(List<String> atsRecommendations) { this.atsRecommendations = atsRecommendations; }
 
@@ -117,6 +127,7 @@ public class MatchResponse {
         private String jobTitle;
         private double overallScore;
         private double skillMatchScore;
+        private double softSkillScore;
         private double semanticScore;
         private double experienceScore;
         private double educationScore;
@@ -127,6 +138,7 @@ public class MatchResponse {
         private List<String> missingSkills;
         private int extractedExperienceYears;
         private String detectedEducation;
+        private String resumeRawText;
         private List<String> atsRecommendations;
         private String aiSummaryAdvice;
         private boolean processedWithAi;
@@ -137,6 +149,7 @@ public class MatchResponse {
         public Builder jobTitle(String jobTitle) { this.jobTitle = jobTitle; return this; }
         public Builder overallScore(double overallScore) { this.overallScore = overallScore; return this; }
         public Builder skillMatchScore(double skillMatchScore) { this.skillMatchScore = skillMatchScore; return this; }
+        public Builder softSkillScore(double softSkillScore) { this.softSkillScore = softSkillScore; return this; }
         public Builder semanticScore(double semanticScore) { this.semanticScore = semanticScore; return this; }
         public Builder experienceScore(double experienceScore) { this.experienceScore = experienceScore; return this; }
         public Builder educationScore(double educationScore) { this.educationScore = educationScore; return this; }
@@ -147,12 +160,13 @@ public class MatchResponse {
         public Builder missingSkills(List<String> missingSkills) { this.missingSkills = missingSkills; return this; }
         public Builder extractedExperienceYears(int extractedExperienceYears) { this.extractedExperienceYears = extractedExperienceYears; return this; }
         public Builder detectedEducation(String detectedEducation) { this.detectedEducation = detectedEducation; return this; }
+        public Builder resumeRawText(String resumeRawText) { this.resumeRawText = resumeRawText; return this; }
         public Builder atsRecommendations(List<String> atsRecommendations) { this.atsRecommendations = atsRecommendations; return this; }
         public Builder aiSummaryAdvice(String aiSummaryAdvice) { this.aiSummaryAdvice = aiSummaryAdvice; return this; }
         public Builder processedWithAi(boolean processedWithAi) { this.processedWithAi = processedWithAi; return this; }
 
         public MatchResponse build() {
-            return new MatchResponse(candidateName, candidateEmail, candidatePhone, jobTitle, overallScore, skillMatchScore, semanticScore, experienceScore, educationScore, scoreTier, tierColorHex, detectedSkills, matchedSkills, missingSkills, extractedExperienceYears, detectedEducation, atsRecommendations, aiSummaryAdvice, processedWithAi);
+            return new MatchResponse(candidateName, candidateEmail, candidatePhone, jobTitle, overallScore, skillMatchScore, softSkillScore, semanticScore, experienceScore, educationScore, scoreTier, tierColorHex, detectedSkills, matchedSkills, missingSkills, extractedExperienceYears, detectedEducation, resumeRawText, atsRecommendations, aiSummaryAdvice, processedWithAi);
         }
     }
 }
