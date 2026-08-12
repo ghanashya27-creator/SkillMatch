@@ -125,17 +125,49 @@ public class ResumeMatcherService {
         }
 
         List<String> recommendations = new ArrayList<>();
+        List<String> dealbreakers = new ArrayList<>();
+        List<String> optimizedBullets = new ArrayList<>();
+
         if (!missingSkills.isEmpty()) {
             recommendations.add("Incorporate missing key skills: " + String.join(", ", missingSkills.subList(0, Math.min(5, missingSkills.size()))));
+            for (String ms : missingSkills.subList(0, Math.min(3, missingSkills.size()))) {
+                optimizedBullets.add("• Engineered scalable application components utilizing " + ms + " to optimize system throughput and decrease processing latency by 25%.");
+            }
+            if (missingSkills.size() >= 3) {
+                dealbreakers.add("Missing " + missingSkills.size() + " required core job skills (" + String.join(", ", missingSkills.subList(0, Math.min(3, missingSkills.size()))) + ").");
+            }
         }
+
         if (expYears < requiredExpYears) {
             recommendations.add("Highlight project achievements to compensate for experience requirement (" + requiredExpYears + "+ yrs required vs " + expYears + " yrs detected).");
+            if (requiredExpYears - expYears >= 2) {
+                dealbreakers.add("Experience shortfall: " + expYears + " yrs detected vs " + requiredExpYears + "+ yrs required.");
+            }
         }
-        if (semanticScore < 50.0) {
+
+        if (email.contains("Not Found") || phone.contains("Not Found")) {
+            dealbreakers.add("Unclear or missing candidate contact details (Email/Phone) in resume header.");
+        }
+
+        if (semanticScore < 45.0) {
             recommendations.add("Align resume summary phrasing closer to the target job description keywords.");
         }
+
         if (recommendations.isEmpty()) {
             recommendations.add("Excellent fit! Resume is well-aligned with key job requirements.");
+        }
+
+        // Compute Gatekeeper Decision and Interview Callback Odds %
+        int callbackOdds = (int) Math.round((overallScore * 0.7) + (skillScore * 0.3) - (dealbreakers.size() * 15));
+        callbackOdds = Math.max(12, Math.min(98, callbackOdds));
+
+        String gatekeeperDecision;
+        if (dealbreakers.isEmpty() && overallScore >= 80) {
+            gatekeeperDecision = "🚀 Fast-Track Candidate";
+        } else if (dealbreakers.size() <= 1 && overallScore >= 60) {
+            gatekeeperDecision = "⚠️ Needs HR Review";
+        } else {
+            gatekeeperDecision = "🚨 High Auto-Rejection Risk";
         }
 
         String aiAdvice = groqAiService.generateAiAdvice(jobTitle, jobDesc, resumeText, missingSkills, request.getGroqApiKey());
@@ -170,6 +202,11 @@ public class ResumeMatcherService {
                 .educationScore(Math.round(eduScore))
                 .scoreTier(tier)
                 .tierColorHex(colorHex)
+                .gatekeeperDecision(gatekeeperDecision)
+                .callbackOddsPercentage(callbackOdds)
+                .dealbreakerCount(dealbreakers.size())
+                .dealbreakersList(dealbreakers)
+                .optimizedSkillBullets(optimizedBullets)
                 .detectedSkills(candidateSkills)
                 .matchedSkills(matchedSkills)
                 .missingSkills(missingSkills)
