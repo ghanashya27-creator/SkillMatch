@@ -293,6 +293,36 @@ function renderSingleMatchResults(data) {
         education: data.educationScore
     });
 
+    // Gatekeeper & Callback Odds UI
+    document.getElementById('text-gatekeeper-decision').textContent = data.gatekeeperDecision || '🚀 Fast-Track Candidate';
+    const oddsVal = data.callbackOddsPercentage || 85;
+    const oddsEl = document.getElementById('text-callback-odds');
+    oddsEl.textContent = `${oddsVal}% Probability`;
+    oddsEl.style.color = oddsVal >= 80 ? '#4ade80' : (oddsVal >= 55 ? '#facc15' : '#f87171');
+
+    const dealbreakersBox = document.getElementById('box-dealbreakers');
+    const dealbreakersList = document.getElementById('list-dealbreakers');
+    dealbreakersList.innerHTML = '';
+    if (data.dealbreakersList && data.dealbreakersList.length > 0) {
+        data.dealbreakersList.forEach(d => {
+            const li = document.createElement('li');
+            li.textContent = d;
+            dealbreakersList.appendChild(li);
+        });
+        dealbreakersBox.style.display = 'block';
+    } else {
+        dealbreakersBox.style.display = 'none';
+    }
+
+    const bulletsBox = document.getElementById('box-optimized-bullets');
+    const bulletsContainer = document.getElementById('container-optimized-bullets');
+    if (data.optimizedSkillBullets && data.optimizedSkillBullets.length > 0) {
+        bulletsContainer.textContent = data.optimizedSkillBullets.join('\n\n');
+        bulletsBox.style.display = 'block';
+    } else {
+        bulletsBox.style.display = 'none';
+    }
+
     const matchedContainer = document.getElementById('container-matched-skills');
     matchedContainer.innerHTML = '';
     if (data.matchedSkills && data.matchedSkills.length > 0) {
