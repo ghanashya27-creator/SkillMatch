@@ -14,6 +14,7 @@ let state = {
     jobs: [],
     selectedSingleFile: null,
     selectedBulkFiles: [],
+    lastSingleResult: null,
     lastBulkResults: null
 };
 
@@ -122,6 +123,18 @@ function initEventListeners() {
     document.getElementById('btn-export-csv').addEventListener('click', exportBulkCsv);
     document.getElementById('btn-refresh-history').addEventListener('click', loadHistory);
 
+    // Modal & Print
+    document.getElementById('btn-open-inspect').addEventListener('click', openKeywordInspector);
+    document.getElementById('btn-close-inspect').addEventListener('click', () => {
+        document.getElementById('modal-inspect').style.display = 'none';
+    });
+    document.getElementById('btn-print-report').addEventListener('click', () => window.print());
+
+    // Recruiter Filter & Search Listeners
+    document.getElementById('input-search-leaderboard').addEventListener('input', applyLeaderboardFilters);
+    document.getElementById('select-filter-tier').addEventListener('change', applyLeaderboardFilters);
+    document.getElementById('select-sort-by').addEventListener('change', applyLeaderboardFilters);
+
     // Job Posting Modal toggles
     document.getElementById('btn-open-create-job').addEventListener('click', () => {
         document.getElementById('box-create-job').style.display = 'block';
@@ -171,13 +184,11 @@ async function loadSampleData() {
         if (!response.ok) return;
         const data = await response.json();
 
-        // Select the first preset job if available
         const selectSingle = document.getElementById('select-job-preset');
         if (selectSingle.options.length > 1) {
             selectSingle.selectedIndex = 1;
         }
 
-        // Fill sample resume text
         document.getElementById('input-resume-text').value = data.sampleJavaResume;
         state.selectedSingleFile = null;
         document.getElementById('badge-file-single').style.display = 'none';
@@ -234,6 +245,7 @@ async function handleSingleMatch() {
         }
 
         const data = await response.json();
+        state.lastSingleResult = data;
         renderSingleMatchResults(data);
     } catch (err) {
         alert('Error: ' + err.message);
@@ -247,7 +259,6 @@ function renderSingleMatchResults(data) {
     document.getElementById('match-results-empty').style.display = 'none';
     document.getElementById('match-results-content').style.display = 'block';
 
-    // Update Overall Score Circle
     const scoreVal = Math.round(data.overallScore);
     document.getElementById('text-overall-score').textContent = `${scoreVal}%`;
     const circle = document.getElementById('score-circle-val');
@@ -256,28 +267,32 @@ function renderSingleMatchResults(data) {
     circle.style.strokeDashoffset = offset;
     circle.style.stroke = data.tierColorHex || '#6b62f2';
 
-    // Tier badge
     const tierBadge = document.getElementById('badge-match-tier');
     tierBadge.textContent = data.scoreTier;
     tierBadge.style.backgroundColor = (data.tierColorHex || '#6b62f2') + '25';
     tierBadge.style.color = data.tierColorHex || '#6b62f2';
     tierBadge.style.border = `1px solid ${data.tierColorHex || '#6b62f2'}`;
 
-    // Engine badge
     const engineBadge = document.getElementById('badge-engine-type');
     engineBadge.textContent = data.processedWithAi ? '✦ Groq AI Enhanced' : 'Offline Local Engine';
 
-    // Candidate details
     document.getElementById('text-candidate-name').textContent = data.candidateName || 'Candidate Profile';
     document.getElementById('text-candidate-meta').textContent = `${data.candidateEmail} • ${data.candidatePhone} • ${data.extractedExperienceYears} Yrs Exp • ${data.detectedEducation}`;
 
-    // Metric scores
     document.getElementById('val-skill-score').textContent = `${Math.round(data.skillMatchScore)}%`;
     document.getElementById('val-semantic-score').textContent = `${Math.round(data.semanticScore)}%`;
     document.getElementById('val-exp-score').textContent = `${Math.round(data.experienceScore)}%`;
     document.getElementById('val-edu-score').textContent = `${Math.round(data.educationScore)}%`;
 
-    // Matched skills
+    // Render 5-Axis SVG Pentagon Radar Chart
+    renderRadarChart({
+        hardSkills: data.skillMatchScore,
+        softSkills: data.softSkillScore || 75,
+        semantic: data.semanticScore,
+        experience: data.experienceScore,
+        education: data.educationScore
+    });
+
     const matchedContainer = document.getElementById('container-matched-skills');
     matchedContainer.innerHTML = '';
     if (data.matchedSkills && data.matchedSkills.length > 0) {
@@ -291,7 +306,6 @@ function renderSingleMatchResults(data) {
         matchedContainer.innerHTML = '<span style="font-size:12px; color:var(--color-slate);">No specific skills matched</span>';
     }
 
-    // Missing skills
     const missingContainer = document.getElementById('container-missing-skills');
     missingContainer.innerHTML = '';
     if (data.missingSkills && data.missingSkills.length > 0) {
@@ -305,7 +319,6 @@ function renderSingleMatchResults(data) {
         missingContainer.innerHTML = '<span style="font-size:12px; color:var(--color-slate);">No missing skill gaps detected!</span>';
     }
 
-    // ATS Advice
     const adviceList = document.getElementById('list-ats-advice');
     adviceList.innerHTML = '';
     if (data.atsRecommendations) {
@@ -317,7 +330,6 @@ function renderSingleMatchResults(data) {
         });
     }
 
-    // Groq AI Advice Box
     const aiBox = document.getElementById('box-ai-summary');
     if (data.aiSummaryAdvice) {
         document.getElementById('text-ai-advice').textContent = data.aiSummaryAdvice;
@@ -325,6 +337,69 @@ function renderSingleMatchResults(data) {
     } else {
         aiBox.style.display = 'none';
     }
+}
+
+// Draw 5-Axis Pentagon SVG Radar Chart
+function renderRadarChart(metrics) {
+    const svg = document.getElementById('svg-radar-chart');
+    const cx = 110, cy = 100, radius = 70;
+    const angles = [-Math.PI/2, -Math.PI/2 + (2*Math.PI/5), -Math.PI/2 + (4*Math.PI/5), -Math.PI/2 + (6*Math.PI/5), -Math.PI/2 + (8*Math.PI/5)];
+    const labels = ["Hard Skill", "Soft Skill", "Semantic", "Experience", "Education"];
+    const values = [metrics.hardSkills, metrics.softSkills, metrics.semantic, metrics.experience, metrics.education];
+
+    let gridHtml = '';
+
+    // Draw background concentric grid polygons (100%, 75%, 50%, 25%)
+    [1.0, 0.75, 0.5, 0.25].forEach(scale => {
+        let points = angles.map(a => `${cx + radius * scale * Math.cos(a)},${cy + radius * scale * Math.sin(a)}`).join(' ');
+        gridHtml += `<polygon points="${points}" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="1" />`;
+    });
+
+    // Draw axis lines and labels
+    angles.forEach((a, i) => {
+        let x2 = cx + radius * Math.cos(a);
+        let y2 = cy + radius * Math.sin(a);
+        gridHtml += `<line x1="${cx}" y1="${cy}" x2="${x2}" y2="${y2}" stroke="rgba(255,255,255,0.15)" stroke-width="1" />`;
+
+        let lx = cx + (radius + 15) * Math.cos(a);
+        let ly = cy + (radius + 15) * Math.sin(a);
+        gridHtml += `<text x="${lx}" y="${ly}" fill="#c2c2c2" font-size="9" text-anchor="middle" dominant-baseline="middle">${labels[i]}</text>`;
+    });
+
+    // Compute Candidate Score Polygon Points
+    let scorePoints = angles.map((a, i) => {
+        let normVal = Math.min(100, Math.max(10, values[i])) / 100.0;
+        let px = cx + radius * normVal * Math.cos(a);
+        let py = cy + radius * normVal * Math.sin(a);
+        return `${px},${py}`;
+    }).join(' ');
+
+    let scorePolygon = `<polygon points="${scorePoints}" fill="rgba(107, 98, 242, 0.35)" stroke="#6b62f2" stroke-width="2" />`;
+
+    svg.innerHTML = gridHtml + scorePolygon;
+}
+
+// Open Keyword Inspector Modal
+function openKeywordInspector() {
+    if (!state.lastSingleResult) {
+        alert('Please evaluate a resume first.');
+        return;
+    }
+    const data = state.lastSingleResult;
+    const modal = document.getElementById('modal-inspect');
+    const box = document.getElementById('box-inspected-text');
+
+    let text = data.resumeRawText || 'No raw text stored.';
+    let matched = data.matchedSkills || [];
+
+    // Highlight matched skills in text
+    matched.forEach(skill => {
+        const regex = new RegExp(`\\b(${skill})\\b`, 'gi');
+        text = text.replace(regex, `<span class="kw-matched">$1</span>`);
+    });
+
+    box.innerHTML = text;
+    modal.style.display = 'flex';
 }
 
 // Handle Bulk Resume Ranking (Recruiter Mode)
@@ -372,10 +447,40 @@ function renderLeaderboard(data) {
     document.getElementById('title-leaderboard-job').textContent = `Candidate Leaderboard — ${data.jobTitle}`;
     document.getElementById('badge-processed-count').textContent = `${data.totalCandidatesProcessed} Candidates Ranked`;
 
+    applyLeaderboardFilters();
+}
+
+// Filter, Search, and Sort Recruiter Leaderboard
+function applyLeaderboardFilters() {
+    if (!state.lastBulkResults || !state.lastBulkResults.rankedCandidates) return;
+
+    const searchTerm = document.getElementById('input-search-leaderboard').value.toLowerCase();
+    const filterTier = document.getElementById('select-filter-tier').value;
+    const sortBy = document.getElementById('select-sort-by').value;
+
+    let filtered = state.lastBulkResults.rankedCandidates.filter(c => {
+        const nameMatch = (c.candidateName || '').toLowerCase().includes(searchTerm);
+        const emailMatch = (c.candidateEmail || '').toLowerCase().includes(searchTerm);
+        const skillMatch = (c.matchedSkills || []).some(s => s.toLowerCase().includes(searchTerm));
+        const matchesSearch = nameMatch || emailMatch || skillMatch;
+
+        const matchesTier = (filterTier === 'ALL') || (c.scoreTier === filterTier);
+        return matchesSearch && matchesTier;
+    });
+
+    // Multi-sort logic
+    if (sortBy === 'SCORE_DESC') {
+        filtered.sort((a, b) => b.overallScore - a.overallScore);
+    } else if (sortBy === 'SKILL_DESC') {
+        filtered.sort((a, b) => b.skillMatchScore - a.skillMatchScore);
+    } else if (sortBy === 'EXP_DESC') {
+        filtered.sort((a, b) => b.extractedExperienceYears - a.extractedExperienceYears);
+    }
+
     const tbody = document.getElementById('tbody-leaderboard');
     tbody.innerHTML = '';
 
-    data.rankedCandidates.forEach((candidate, index) => {
+    filtered.forEach((candidate, index) => {
         const tr = document.createElement('tr');
         const rankMedal = index === 0 ? '🥇 1' : (index === 1 ? '🥈 2' : (index === 2 ? '🥉 3' : `#${index + 1}`));
 

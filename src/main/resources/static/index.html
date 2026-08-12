@@ -128,13 +128,18 @@
                                 <div id="badge-match-tier" class="tier-badge">Calculating...</div>
                                 <div id="text-candidate-name" style="font-size: 15px; font-weight: 500; margin-top: 12px; color: var(--color-snow-white);">Candidate Profile</div>
                                 <div id="text-candidate-meta" style="font-size: 12px; color: var(--color-slate);">Email & Phone</div>
+                                
+                                <div style="display: flex; gap: 8px; margin-top: 16px; width: 100%;">
+                                    <button id="btn-open-inspect" class="btn-ghost-pill" style="flex: 1; font-size: 12px; padding: 6px 10px;">🔍 Inspect Text</button>
+                                    <button id="btn-print-report" class="btn-ghost-pill" style="flex: 1; font-size: 12px; padding: 6px 10px;">🖨️ Certificate</button>
+                                </div>
                             </div>
 
-                            <!-- Metrics Sub-scores -->
+                            <!-- Metrics Sub-scores & Radar Chart -->
                             <div>
                                 <div class="metrics-row">
                                     <div class="metric-pill-box">
-                                        <div class="metric-title">Skill Score</div>
+                                        <div class="metric-title">Hard Skills</div>
                                         <div id="val-skill-score" class="metric-val">0%</div>
                                     </div>
                                     <div class="metric-pill-box">
@@ -148,6 +153,16 @@
                                     <div class="metric-pill-box">
                                         <div class="metric-title">Education</div>
                                         <div id="val-edu-score" class="metric-val">0%</div>
+                                    </div>
+                                </div>
+
+                                <!-- 5-Axis SVG Pentagon Radar Chart -->
+                                <div style="background: var(--color-graphite); border: 1px solid var(--color-hairline); border-radius: var(--radius-ui); padding: 16px; margin-bottom: 20px; text-align: center;">
+                                    <div style="font-size: 12px; color: var(--color-slate); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">5-Axis Skill Fit Radar</div>
+                                    <div style="display: flex; justify-content: center;">
+                                        <svg id="svg-radar-chart" width="220" height="200" viewBox="0 0 220 200">
+                                            <!-- Polygon radar grid and shape dynamically rendered by JS -->
+                                        </svg>
                                     </div>
                                 </div>
 
@@ -210,11 +225,27 @@
                 </button>
             </div>
 
-            <!-- Leaderboard Output Table -->
+            <!-- Leaderboard Output Table with Filter & Search Controls -->
             <div id="box-leaderboard" class="frosted-card" style="display: none;">
                 <div class="card-title">
                     <span id="title-leaderboard-job">Candidate Leaderboard</span>
                     <span id="badge-processed-count" class="status-pill" style="font-size: 12px;">0 Candidates</span>
+                </div>
+
+                <!-- Recruiter Filter & Search Control Bar -->
+                <div style="display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap;">
+                    <input type="text" id="input-search-leaderboard" class="form-input" placeholder="🔍 Search candidate name or skill..." style="flex: 1; min-width: 200px; padding: 8px 12px; font-size: 13px;">
+                    <select id="select-filter-tier" class="form-select" style="width: auto; padding: 8px 12px; font-size: 13px;">
+                        <option value="ALL">All Tiers</option>
+                        <option value="Top Match">Top Match (85%+)</option>
+                        <option value="Strong Match">Strong Match (70%+)</option>
+                        <option value="Moderate Match">Moderate Match (50%+)</option>
+                    </select>
+                    <select id="select-sort-by" class="form-select" style="width: auto; padding: 8px 12px; font-size: 13px;">
+                        <option value="SCORE_DESC">Sort: Score (High → Low)</option>
+                        <option value="SKILL_DESC">Sort: Skill Score</option>
+                        <option value="EXP_DESC">Sort: Experience Years</option>
+                    </select>
                 </div>
 
                 <div style="overflow-x: auto;">
@@ -276,7 +307,7 @@
                 </div>
                 <p style="font-size: 14px; color: var(--color-ash); margin-bottom: 20px;">Inspect preset job roles and add custom job specifications to the database.</p>
 
-                <!-- Create Job Form Modal / Box -->
+                <!-- Create Job Form Box -->
                 <div id="box-create-job" style="display: none; background: var(--color-graphite); border: 1px solid var(--color-hairline); border-radius: var(--radius-ui); padding: 20px; margin-bottom: 24px;">
                     <h3 style="font-size: 16px; margin-bottom: 12px; color: var(--color-snow-white);">Post New Custom Job Specification</h3>
                     <div class="grid-2">
@@ -308,6 +339,20 @@
             </div>
         </main>
 
+    </div>
+
+    <!-- Keyword Inspection Modal -->
+    <div id="modal-inspect" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <div class="card-title" style="margin-bottom: 12px;">
+                <span>🔍 Resume Keyword Inspector & Density</span>
+                <button id="btn-close-inspect" class="btn-ghost-pill" style="padding: 2px 10px; font-size: 12px;">✕ Close</button>
+            </div>
+            <div style="font-size: 13px; color: var(--color-ash); margin-bottom: 12px;">
+                Vibrant <span style="background: rgba(34,197,94,0.3); color:#4ade80; padding:2px 6px; border-radius:4px;">Green</span> indicates Matched Required Skills.
+            </div>
+            <div id="box-inspected-text" style="background: #000; border: 1px solid var(--color-hairline); border-radius: var(--radius-ui); padding: 16px; font-family: monospace; font-size: 13px; max-height: 350px; overflow-y: auto; white-space: pre-wrap; color: #d4d4d4;"></div>
+        </div>
     </div>
 
     <!-- Frontend Script -->
