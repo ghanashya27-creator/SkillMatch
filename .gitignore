@@ -1,0 +1,20 @@
+# Build output
+/target/
+/maven/
+/mvn_home/
+*.jar
+*.war
+*.ear
+
+# IDE & System files
+.idea/
+*.iml
+.classpath
+.project
+.settings/
+.DS_Store
+Thumbs.db
+
+# Logs & temp
+*.log
+/scratch/
