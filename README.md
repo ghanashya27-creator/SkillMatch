@@ -27,16 +27,18 @@
 6. [Design Aesthetics & UI Tokens](#-design-aesthetics--ui-tokens)
 7. [Security & Robustness](#-security--robustness)
 8. [Local Machine Setup](#-local-machine-setup)
-9. [Cloud Deployment Guide (Render / Supabase)](#-cloud-deployment-guide-render--supabase)
+9. [Production Deployment Architecture](#-production-deployment-architecture)
 10. [Author & Contact](#-author--contact)
 
 ---
 
 ## 🌟 Key Features & Highlights
 
-- 🎯 **Single Resume Candidate Matcher**: Instant evaluation of PDF/Text resumes against target job descriptions with circular animated score gauges, matched skills (green pills), missing skill gaps (red pills), and ATS improvement steps.
+- 🎯 **Single Resume Candidate Matcher**: Instant evaluation of PDF/Text resumes against target job descriptions with circular animated score gauges, 5-axis SVG radar charts, matched skills (green pills), missing skill gaps (red pills), and ATS improvement steps.
+- 🔍 **Interactive Resume Keyword Inspector**: Live modal highlighting matched required skills vs missing job keywords directly in raw candidate text.
 - 🏆 **Recruiter Bulk Candidate Leaderboard**: Upload 20+ resumes simultaneously for a job position and generate a ranked leaderboard sorted by overall compatibility percentage.
-- 📊 **1-Click CSV Report Exporter**: Download structured candidate ranking reports for recruiter shortlisting.
+- ⚡ **Real-Time Search & Multi-Filter**: Search candidates by name/skill, filter by match tier (Top Match 85%+), and multi-sort by experience or score.
+- 📊 **1-Click CSV Report & Printable Certificate Exporter**: Export candidate ranking reports or print branded candidate match certificates.
 - ⚡ **Sub-10ms Offline Performance**: Core TF-IDF Cosine Similarity engine runs 100% locally in pure Java with zero external API dependencies or API costs.
 - 🤖 **Optional Groq AI LLM Integration**: Plug-and-play AI feedback using Groq's `llama-3.3-70b-versatile` model for personalized resume rewrite recommendations when a `GROQ_API_KEY` is provided.
 - 🗄️ **Dual Database Persistence (H2 + Supabase)**: Runs out-of-the-box with zero setup using an in-memory H2 database, while supporting Supabase PostgreSQL cloud persistence.
@@ -48,8 +50,8 @@
 
 | Target Persona | Key Pain Point | How SkillMatch Solves It |
 | :--- | :--- | :--- |
-| **Recruiters & HR Managers** | Manual screening of 200+ resumes per job role takes 15+ hours weekly. | **Recruiter Mode**: Bulk upload resumes, view instant ranked leaderboard badges, filter candidate shortlists, and export CSV reports. |
-| **Job Seekers & Applicants** | Resumes get rejected by ATS filters without feedback on keyword gaps. | **Candidate Mode**: Upload resume PDF/TXT, get ATS compatibility score %, view missing keywords, and follow actionable rewrite advice. |
+| **Recruiters & HR Managers** | Manual screening of 200+ resumes per job role takes 15+ hours weekly. | **Recruiter Mode**: Bulk upload resumes, view instant ranked leaderboard badges, search/filter candidate shortlists, and export CSV reports. |
+| **Job Seekers & Applicants** | Resumes get rejected by ATS filters without feedback on keyword gaps. | **Candidate Mode**: Upload resume PDF/TXT, get ATS compatibility score %, view 5-axis radar chart, inspect keyword gaps, and follow actionable rewrite advice. |
 | **Placement Agencies & Consultants** | Need objective scoring metrics to present candidate shortlists to client companies. | **Match History Analytics**: Database persistence of match evaluations and score breakdowns over time. |
 
 ---
@@ -112,7 +114,7 @@ $$\text{Overall Fit Score} = (S_{\text{skill}} \times 0.40) + (S_{\text{semantic
 ### Frontend
 * **Core**: HTML5, CSS3, ES6+ Vanilla JavaScript (Single Page Architecture)
 * **Design Tokens**: `DESIGN.md` Dimension dusk-lit design system
-* **Visual Highlights**: Animated SVG score progress gauges, frosted glass backdrop filters, 9999px pill controls.
+* **Visual Highlights**: 5-Axis SVG Pentagon Radar Chart, animated SVG score progress gauges, frosted glass backdrop filters, 9999px pill controls.
 
 ### Persistence & Storage
 * **Local Database**: Embedded H2 Database (In-memory, zero-config default)
@@ -149,13 +151,13 @@ The user interface follows the **Dimension** dusk-lit workspace reference:
 
 ### Prerequisites
 * **Java Development Kit (JDK 17 or higher)** installed.
-* No local Maven installation required (includes Maven Wrapper `mvnw.cmd`).
+* Includes Maven Wrapper `mvnw.cmd` (no external Maven installation required).
 
 ### Quick Start Instructions
 
 1. **Clone the Repository**:
    ```bash
-   git clone https.github.com/ghanashya27-creator/SkillMatch.git
+   git clone https://github.com/ghanashya27-creator/SkillMatch.git
    cd SkillMatch
    ```
 
@@ -178,23 +180,20 @@ The user interface follows the **Dimension** dusk-lit workspace reference:
 
 ---
 
-## ☁️ Cloud Deployment Guide (Render / Supabase)
+## ☁️ Production Deployment Architecture
 
-### Deploying to Render.com (Free Web Service)
+The application is architected for zero-downtime, continuous cloud deployment:
 
-1. Push code to your GitHub repository `https://github.com/ghanashya27-creator/SkillMatch.git`.
-2. Log in to [Render.com](https://render.com) and click **New > Web Service**.
-3. Connect your GitHub repository.
-4. Set the build and start configuration:
-   * **Environment**: `Java`
-   * **Build Command**: `./mvnw clean package -DskipTests`
-   * **Start Command**: `java -jar target/skillmatch-resume-ranker-1.0.0.jar`
-5. (Optional) Add environment variables for **Supabase PostgreSQL**:
-   * `SPRING_DATASOURCE_URL`: `jdbc:postgresql://db.<your-supabase-id>.supabase.co:5432/postgres`
-   * `SPRING_DATASOURCE_USERNAME`: `postgres`
-   * `SPRING_DATASOURCE_PASSWORD`: `<your-supabase-password>`
-   * `GROQ_API_KEY`: `<your-optional-groq-key>`
-6. Click **Deploy**. Your app will be live at `https://<your-app-name>.onrender.com`.
+* **Production Hosting**: Deployed as an executable Spring Boot JAR on **Render Cloud Web Service**.
+* **Continuous Integration**: Configured with automated deployment triggers on `git push` to the `main` branch.
+* **Database Persistence**: Connected to a managed **Supabase PostgreSQL** cloud instance via environment variables (`SPRING_DATASOURCE_URL`).
+* **Environment Configuration**: Key configurations (`SPRING_DATASOURCE_URL`, `SPRING_DATASOURCE_USERNAME`, `SPRING_DATASOURCE_PASSWORD`, `GROQ_API_KEY`) are injected securely at runtime via environment hooks.
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
 
 ---
 
