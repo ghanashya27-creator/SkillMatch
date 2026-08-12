@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SkillMatch — Resume Ranker & ATS Matching Engine</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>✦</text></svg>">
+</head>
+<body>
+
+    <!-- Radial Spotlight Background Glow -->
+    <div class="spotlight-glow"></div>
+
+    <div class="app-container">
+
+        <!-- Status Announcement Pill -->
+        <div class="status-banner">
+            <div class="status-pill">
+                <span class="status-dot"></span>
+                <span>SkillMatch Engine v1.0 • Hybrid Java TF-IDF & Groq AI Powered</span>
+            </div>
+        </div>
+
+        <!-- Floating Frosted Nav Bar -->
+        <div class="floating-nav-container">
+            <nav class="floating-nav">
+                <div class="nav-brand">
+                    <div class="brand-icon">✦</div>
+                    <span>SkillMatch</span>
+                </div>
+                <div class="nav-tabs">
+                    <button class="nav-tab-btn active" data-tab="tab-candidate">Candidate Matcher</button>
+                    <button class="nav-tab-btn" data-tab="tab-recruiter">Recruiter Leaderboard</button>
+                    <button class="nav-tab-btn" data-tab="tab-history">Analytics History</button>
+                    <button class="nav-tab-btn" data-tab="tab-jobs">Job Explorer</button>
+                </div>
+                <a href="/swagger-ui.html" target="_blank" class="btn-ghost-pill" style="padding: 6px 14px; font-size: 13px;">API Docs</a>
+            </nav>
+        </div>
+
+        <!-- HERO SECTION -->
+        <header class="hero-section">
+            <h1 class="hero-title">Precision Resume Matching.<br>Zero Bias. Instant Ranking.</h1>
+            <p class="hero-subtitle">Match candidate resumes against specific job descriptions using mathematical TF-IDF semantic similarity, skill gap analysis, and ATS optimization advice.</p>
+        </header>
+
+        <!-- TAB 1: CANDIDATE MATCHER -->
+        <main id="tab-candidate" class="tab-panel active">
+            <div class="grid-2">
+                <!-- Left: Input Controls -->
+                <div class="frosted-card">
+                    <div class="card-title">
+                        <span>1. Target Job Role</span>
+                        <button id="btn-load-sample" class="btn-ghost-pill" style="padding: 4px 12px; font-size: 12px;">✦ Load 1-Click Sample</button>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="select-job-preset">Select Preset Job Position</label>
+                        <select id="select-job-preset" class="form-select">
+                            <option value="">-- Or Paste Custom Job Description Below --</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="input-custom-title">Custom Job Title (Optional)</label>
+                        <input type="text" id="input-custom-title" class="form-input" placeholder="e.g. Senior Backend Engineer">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="input-custom-desc">Custom Job Description</label>
+                        <textarea id="input-custom-desc" class="form-textarea" placeholder="Paste full job description requirements here..."></textarea>
+                    </div>
+
+                    <div class="card-title" style="margin-top: 24px;">
+                        <span>2. Candidate Resume</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Upload Resume File (.PDF or .TXT)</label>
+                        <div id="dropzone-single" class="dropzone">
+                            <div class="dropzone-icon">📄</div>
+                            <div class="dropzone-text">Click or drag & drop PDF / Text resume file</div>
+                            <input type="file" id="file-resume-single" accept=".pdf,.txt" style="display: none;">
+                            <div id="badge-file-single" class="file-name-badge" style="display: none;"></div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="input-resume-text">Or Paste Resume Text</label>
+                        <textarea id="input-resume-text" class="form-textarea" placeholder="Paste raw resume text here..."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="input-groq-key">Groq AI API Key (Optional for AI rewrite advice)</label>
+                        <input type="password" id="input-groq-key" class="form-input" placeholder="gsk_... (Leave empty to use built-in local engine)">
+                    </div>
+
+                    <button id="btn-match-single" class="btn-primary-pill" style="width: 100%; justify-content: center; padding: 12px; margin-top: 10px;">
+                        <span>Analyze & Match Resume</span> ✦
+                    </button>
+                </div>
+
+                <!-- Right: Live Score Results Dashboard -->
+                <div class="frosted-card">
+                    <div class="card-title">
+                        <span>Match Evaluation Breakdown</span>
+                        <span id="badge-engine-type" class="status-pill" style="font-size: 11px; padding: 2px 10px;">Offline Local Engine</span>
+                    </div>
+
+                    <div id="match-results-empty" style="text-align: center; padding: 60px 20px; color: var(--color-slate);">
+                        <div style="font-size: 48px; margin-bottom: 12px;">📊</div>
+                        <p style="font-size: 16px; color: var(--color-ash);">No match evaluation yet.</p>
+                        <p style="font-size: 13px;">Select a job and upload a resume on the left, then click "Analyze & Match Resume".</p>
+                    </div>
+
+                    <div id="match-results-content" style="display: none;">
+                        <div class="score-dashboard-grid">
+                            <!-- Hero Score Box -->
+                            <div class="score-hero-box">
+                                <div class="score-circle-container">
+                                    <svg class="score-circle-svg" viewBox="0 0 100 100">
+                                        <circle class="score-circle-bg" cx="50" cy="50" r="40"></circle>
+                                        <circle id="score-circle-val" class="score-circle-val" cx="50" cy="50" r="40" stroke-dasharray="251.2" stroke-dashoffset="251.2"></circle>
+                                    </svg>
+                                    <div id="text-overall-score" class="score-text-center">0%</div>
+                                </div>
+                                <div id="badge-match-tier" class="tier-badge">Calculating...</div>
+                                <div id="text-candidate-name" style="font-size: 15px; font-weight: 500; margin-top: 12px; color: var(--color-snow-white);">Candidate Profile</div>
+                                <div id="text-candidate-meta" style="font-size: 12px; color: var(--color-slate);">Email & Phone</div>
+                            </div>
+
+                            <!-- Metrics Sub-scores -->
+                            <div>
+                                <div class="metrics-row">
+                                    <div class="metric-pill-box">
+                                        <div class="metric-title">Skill Score</div>
+                                        <div id="val-skill-score" class="metric-val">0%</div>
+                                    </div>
+                                    <div class="metric-pill-box">
+                                        <div class="metric-title">Semantic</div>
+                                        <div id="val-semantic-score" class="metric-val">0%</div>
+                                    </div>
+                                    <div class="metric-pill-box">
+                                        <div class="metric-title">Experience</div>
+                                        <div id="val-exp-score" class="metric-val">0%</div>
+                                    </div>
+                                    <div class="metric-pill-box">
+                                        <div class="metric-title">Education</div>
+                                        <div id="val-edu-score" class="metric-val">0%</div>
+                                    </div>
+                                </div>
+
+                                <!-- Matched Skills -->
+                                <div style="margin-bottom: 16px;">
+                                    <label class="form-label" style="margin-bottom: 4px;">✓ Matched Required Skills</label>
+                                    <div id="container-matched-skills" class="skills-container"></div>
+                                </div>
+
+                                <!-- Missing Skills -->
+                                <div style="margin-bottom: 16px;">
+                                    <label class="form-label" style="margin-bottom: 4px;">⚠ Missing Critical Skills</label>
+                                    <div id="container-missing-skills" class="skills-container"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- ATS Recommendations -->
+                        <div style="margin-top: 24px; border-top: 1px solid var(--color-hairline); padding-top: 20px;">
+                            <h3 style="font-family: var(--font-geist); font-size: 16px; margin-bottom: 12px; color: var(--color-bone);">ATS Optimization Action Plan</h3>
+                            <ul id="list-ats-advice" class="advice-list"></ul>
+                        </div>
+
+                        <!-- Groq AI Advice Box (if available) -->
+                        <div id="box-ai-summary" style="margin-top: 20px; background: rgba(107, 98, 242, 0.1); border: 1px solid rgba(107, 98, 242, 0.3); border-radius: var(--radius-ui); padding: 16px; display: none;">
+                            <h4 style="font-size: 14px; color: #a5b4fc; margin-bottom: 8px;">✦ Groq AI Assistant Advice</h4>
+                            <div id="text-ai-advice" style="font-size: 13px; color: var(--color-bone); white-space: pre-line;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- TAB 2: RECRUITER LEADERBOARD -->
+        <main id="tab-recruiter" class="tab-panel">
+            <div class="frosted-card">
+                <div class="card-title">
+                    <span>Recruiter Bulk Candidate Matcher</span>
+                    <button id="btn-export-csv" class="btn-ghost-pill" style="display: none; padding: 6px 14px; font-size: 13px;">📥 Export CSV Report</button>
+                </div>
+                <p style="font-size: 14px; color: var(--color-ash); margin-bottom: 20px;">Upload multiple candidate resumes to rank them against a target job position in real time.</p>
+
+                <div class="grid-2" style="margin-bottom: 20px;">
+                    <div>
+                        <label class="form-label">Target Job Role</label>
+                        <select id="select-bulk-job" class="form-select"></select>
+                    </div>
+                    <div>
+                        <label class="form-label">Upload Multiple Resumes (.PDF / .TXT)</label>
+                        <div id="dropzone-bulk" class="dropzone" style="padding: 20px;">
+                            <div class="dropzone-text">Click or drag & drop multiple resume files</div>
+                            <input type="file" id="files-bulk" accept=".pdf,.txt" multiple style="display: none;">
+                            <div id="badge-bulk-count" class="file-name-badge" style="display: none;">0 Files Selected</div>
+                        </div>
+                    </div>
+                </div>
+
+                <button id="btn-rank-bulk" class="btn-primary-pill" style="width: 100%; justify-content: center; padding: 12px;">
+                    <span>Process & Rank Candidates</span> ✦
+                </button>
+            </div>
+
+            <!-- Leaderboard Output Table -->
+            <div id="box-leaderboard" class="frosted-card" style="display: none;">
+                <div class="card-title">
+                    <span id="title-leaderboard-job">Candidate Leaderboard</span>
+                    <span id="badge-processed-count" class="status-pill" style="font-size: 12px;">0 Candidates</span>
+                </div>
+
+                <div style="overflow-x: auto;">
+                    <table class="leaderboard-table">
+                        <thead>
+                            <tr>
+                                <th>Rank</th>
+                                <th>Candidate Name</th>
+                                <th>Overall Fit</th>
+                                <th>Tier</th>
+                                <th>Skills Matched</th>
+                                <th>Missing Skills</th>
+                                <th>Contact</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody-leaderboard"></tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+
+        <!-- TAB 3: ANALYTICS HISTORY -->
+        <main id="tab-history" class="tab-panel">
+            <div class="frosted-card">
+                <div class="card-title">
+                    <span>Match History & Database Analytics</span>
+                    <button id="btn-refresh-history" class="btn-ghost-pill" style="padding: 4px 12px; font-size: 12px;">🔄 Refresh Log</button>
+                </div>
+                <p style="font-size: 14px; color: var(--color-ash); margin-bottom: 20px;">Persisted database evaluations saved in Spring Data JPA (H2 / Supabase).</p>
+
+                <div style="overflow-x: auto;">
+                    <table class="leaderboard-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Date</th>
+                                <th>Candidate</th>
+                                <th>Job Title</th>
+                                <th>Score %</th>
+                                <th>Tier</th>
+                                <th>Matched Skills</th>
+                                <th>Engine</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody-history">
+                            <tr><td colspan="8" style="text-align: center; color: var(--color-slate);">Loading history records...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+
+        <!-- TAB 4: JOB EXPLORER -->
+        <main id="tab-jobs" class="tab-panel">
+            <div class="frosted-card">
+                <div class="card-title">
+                    <span>Active Job Description Ontology</span>
+                    <button id="btn-open-create-job" class="btn-primary-pill" style="padding: 6px 14px; font-size: 13px;">+ Post New Job</button>
+                </div>
+                <p style="font-size: 14px; color: var(--color-ash); margin-bottom: 20px;">Inspect preset job roles and add custom job specifications to the database.</p>
+
+                <!-- Create Job Form Modal / Box -->
+                <div id="box-create-job" style="display: none; background: var(--color-graphite); border: 1px solid var(--color-hairline); border-radius: var(--radius-ui); padding: 20px; margin-bottom: 24px;">
+                    <h3 style="font-size: 16px; margin-bottom: 12px; color: var(--color-snow-white);">Post New Custom Job Specification</h3>
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label class="form-label">Job Title</label>
+                            <input type="text" id="new-job-title" class="form-input" placeholder="e.g. Lead DevOps Engineer">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Company Name</label>
+                            <input type="text" id="new-job-company" class="form-input" placeholder="e.g. Acme Corp">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Required Skills (Comma separated)</label>
+                        <input type="text" id="new-job-skills" class="form-input" placeholder="e.g. Java, Spring Boot, Docker, AWS">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Full Job Description</label>
+                        <textarea id="new-job-desc" class="form-textarea" placeholder="Paste full job duties and requirements..."></textarea>
+                    </div>
+                    <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                        <button id="btn-cancel-job" class="btn-ghost-pill">Cancel</button>
+                        <button id="btn-save-job" class="btn-primary-pill">Save Job Posting</button>
+                    </div>
+                </div>
+
+                <!-- Job List Cards Container -->
+                <div id="container-job-cards" class="grid-2"></div>
+            </div>
+        </main>
+
+    </div>
+
+    <!-- Frontend Script -->
+    <script src="/js/app.js"></script>
+</body>
+</html>
