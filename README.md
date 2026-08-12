@@ -58,23 +58,23 @@
 
 ```mermaid
 graph TD
-    User([User / Browser UI]) -->|HTTP / REST| Security[Spring Security Filter Chain]
-    Security -->|Authorized Requests| Controller[ApiController REST Endpoints]
+    User(["User / Browser UI"]) -->|HTTP / REST| Security["Spring Security Filter Chain"]
+    Security -->|Authorized Requests| Controller["ApiController REST Endpoints"]
     
     subgraph Spring Boot 3 Core Backend
-        Controller --> Parser[ResumeParserService\n(Apache PDFBox 3.0.3)]
-        Controller --> Matcher[ResumeMatcherService]
+        Controller --> Parser["ResumeParserService<br/>(Apache PDFBox 3.0.3)"]
+        Controller --> Matcher["ResumeMatcherService"]
         
-        Matcher --> TFIDF[TfidfMatchingEngine\n(Pure Java Cosine Similarity)]
-        Matcher --> Ontology[SkillOntologyService\n(Tech & Soft Skill Taxonomy)]
-        Matcher --> Groq[GroqAiService\n(Optional Groq LLM API)]
+        Matcher --> TFIDF["TfidfMatchingEngine<br/>(Pure Java Cosine Similarity)"]
+        Matcher --> Ontology["SkillOntologyService<br/>(Tech & Soft Skill Taxonomy)"]
+        Matcher --> Groq["GroqAiService<br/>(Optional Groq LLM API)"]
         
-        Matcher --> Repo[Spring Data JPA Repositories]
+        Matcher --> Repo["Spring Data JPA Repositories"]
     end
     
     subgraph Data & Storage Layer
-        Repo -->|Default Local| H2[(H2 Embedded Database)]
-        Repo -->|Cloud Production| Supabase[(Supabase PostgreSQL)]
+        Repo -->|Default Local| H2[("H2 Embedded Database")]
+        Repo -->|Cloud Production| Supabase[("Supabase PostgreSQL")]
     end
 ```
 
